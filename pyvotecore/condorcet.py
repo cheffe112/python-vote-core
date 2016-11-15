@@ -73,13 +73,16 @@ class CondorcetHelper(object):
     def ballots_into_graph(candidates, ballots):
         graph = digraph()
         graph.add_nodes(candidates)
+        preferences = dict()
         for pair in itertools.permutations(candidates, 2):
-            graph.add_edge(pair, sum([
-                ballot["count"]
-                for ballot in ballots
-                if ballot["ballot"][pair[0]] > ballot["ballot"][pair[1]]
-            ]))
-        return graph
+            sum_weight = sum([ballot["count"] for ballot in ballots if ballot["ballot"][pair[0]] > ballot["ballot"][pair[1]]])
+            graph.add_edge(pair, sum_weight)
+            preferences[pair] = sum_weight
+        preferences_new = []
+        for pair in preferences:
+            if preferences[pair] > preferences[(pair[1], pair[0])]:
+                preferences_new.append(pair)
+        return (graph, preferences_new)
 
     @staticmethod
     def edge_weights(graph):
@@ -111,7 +114,7 @@ class CondorcetSystem(SingleWinnerVotingSystem, CondorcetHelper):
         super(CondorcetSystem, self).__init__(self.ballots, tie_breaker=tie_breaker)
 
     def calculate_results(self):
-        self.graph = self.ballots_into_graph(self.candidates, self.ballots)
+        (self.graph, self.preferences) = self.ballots_into_graph(self.candidates, self.ballots)
         self.pairs = self.edge_weights(self.graph)
         self.remove_weak_edges(self.graph)
         self.strong_pairs = self.edge_weights(self.graph)
@@ -125,4 +128,5 @@ class CondorcetSystem(SingleWinnerVotingSystem, CondorcetHelper):
             data["strong_pairs"] = self.strong_pairs
         if hasattr(self, 'tied_winners'):
             data["tied_winners"] = self.tied_winners
+        data["preferences"] = self.preferences
         return data

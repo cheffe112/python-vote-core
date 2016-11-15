@@ -25,6 +25,7 @@ class VotingSystem(object):
 
     @abstractmethod
     def __init__(self, ballots, tie_breaker=None):
+        self.preferences = []
         self.ballots = ballots
         for ballot in self.ballots:
             if "count" not in ballot:
@@ -40,6 +41,7 @@ class VotingSystem(object):
         data["candidates"] = self.candidates
         if self.tie_breaker and self.tie_breaker.ties_broken:
             data["tie_breaker"] = self.tie_breaker.as_list()
+        data["preferences"] = self.preferences
         return data
 
     def break_ties(self, tied_objects, reverse_order=False):
@@ -160,6 +162,10 @@ class AbstractOrderingVotingSystem(OrderingVotingSystem):
             # Mark the candidate that won
             r = {'winner': result.winner}
             self.order.append(r['winner'])
+            
+            # Output pairwise preferences
+            if not self.preferences:
+                self.preferences = result.preferences
 
             # Mark any ties that might have occurred
             if hasattr(result, 'tie_breaker'):
