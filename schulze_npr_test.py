@@ -14,3 +14,27 @@ for winner in voting['rounds']:
 print final_ranking
 print voting['preferences']
 
+preferences = voting['preferences']
+
+import os.path
+data_filename='/home/tobi/Desktop/training.preferences'
+# check if file exists - if not, header needs to be written
+if os.path.isfile(data_filename):
+    fileExists = True
+else:
+    fileExists = False
+
+data_file = open(data_filename, 'a') #a=append
+try:
+    # loop through preferences (should be a list of tuples)
+    for label in preferences[:-1]:
+        data_file.write(str(label[0]))
+        data_file.write('>')
+        data_file.write(str(label[1]))
+        data_file.write(', ')
+    data_file.write(str(preferences[-1][0])) # last one needs to be written individually to avoid tailing separator
+    data_file.write('>')
+    data_file.write(str(preferences[-1][1]))
+    data_file.write('\n')
+finally:
+    data_file.close()
