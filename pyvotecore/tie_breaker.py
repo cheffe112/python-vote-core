@@ -24,44 +24,61 @@ class TieBreaker(object):
     #
     def __init__(self, candidate_range):
         self.ties_broken = False
-        self.random_ordering = list(candidate_range)
+        self.candidates = list(candidate_range)
         if not isinstance(candidate_range, types.ListType):
-            random.shuffle(self.random_ordering)
+            random.shuffle(self.candidates)
 
     #
     def break_ties(self, tied_candidates, reverse=False):
         self.ties_broken = True
-        random_ordering = copy(self.random_ordering)
+        candidates = copy(self.candidates)
         if reverse:
-            random_ordering.reverse()
+            candidates.reverse()
         if getattr(list(tied_candidates)[0], '__iter__', False):
-            result = self.break_complex_ties(tied_candidates, random_ordering)
+            result = self.break_complex_ties(tied_candidates, candidates)
         else:
-            result = self.break_simple_ties(tied_candidates, random_ordering)
+            result = self.break_simple_ties(tied_candidates, candidates)
         return result
 
     #
     @staticmethod
-    def break_simple_ties(tied_candidates, random_ordering):
-        for candidate in random_ordering:
+    def break_simple_ties(tied_candidates, candidates):
+        for candidate in candidates:
             if candidate in tied_candidates:
                 return candidate
 
     #
     @staticmethod
-    def break_complex_ties(tied_candidates, random_ordering):
+    def break_complex_ties(tied_candidates, candidates):
         max_columns = len(list(tied_candidates)[0])
         column = 0
         while len(tied_candidates) > 1 and column < max_columns:
-            min_index = min(random_ordering.index(list(candidate)[column]) for candidate in tied_candidates)
-            tied_candidates = set([candidate for candidate in tied_candidates if candidate[column] == random_ordering[min_index]])
+            min_index = min(candidates.index(list(candidate)[column]) for candidate in tied_candidates)
+            tied_candidates = set([candidate for candidate in tied_candidates if candidate[column] == candidates[min_index]])
             column += 1
         return list(tied_candidates)[0]
 
     #
     def as_list(self):
-        return self.random_ordering
+        return self.candidates
 
     #
     def __str__(self):
-        return "[%s]" % ">".join(self.random_ordering)
+        return "[%s]" % ">".join(self.candidates)
+    
+class ConsistentOrderTieBreaker(TieBreaker):
+    
+    def __init__(self, candidate_range):
+        self.ties_broken = False
+        self.candidates = list(candidate_range)
+
+    def break_ties(self, tied_candidates, reverse=False):
+        self.ties_broken = True
+        candidates = copy(self.candidates)
+        if reverse:
+            candidates.reverse()
+        
+        for candidate in candidates:
+            # TODO hash
+            # TODO use tied candidates
+            return candidate

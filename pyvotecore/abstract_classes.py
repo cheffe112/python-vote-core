@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from tie_breaker import TieBreaker
+from tie_breaker import TieBreaker, ConsistentOrderTieBreaker
 from abc import ABCMeta, abstractmethod
 from copy import copy, deepcopy
 import types
@@ -46,7 +46,8 @@ class VotingSystem(object):
 
     def break_ties(self, tied_objects, reverse_order=False):
         if self.tie_breaker is None:
-            self.tie_breaker = TieBreaker(self.candidates)
+            # hack for allowing for consistent orders
+            self.tie_breaker = ConsistentOrderTieBreaker(self.candidates)
         return self.tie_breaker.break_ties(tied_objects, reverse_order)
 
 
