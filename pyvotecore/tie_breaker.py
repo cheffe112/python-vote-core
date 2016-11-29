@@ -16,6 +16,7 @@
 from copy import copy
 import random
 import types
+import hashlib
 
 
 # This class provides tie breaking methods
@@ -65,7 +66,9 @@ class TieBreaker(object):
     #
     def __str__(self):
         return "[%s]" % ">".join(self.candidates)
-    
+
+# This variant of the tie breaker orders candidates by their hashes and selects the one with the lowest hash.
+# This gives a consistent order because identical input strings will result in identical hashes.    
 class ConsistentOrderTieBreaker(TieBreaker):
     
     def __init__(self, candidate_range):
@@ -74,11 +77,10 @@ class ConsistentOrderTieBreaker(TieBreaker):
 
     def break_ties(self, tied_candidates, reverse=False):
         self.ties_broken = True
-        candidates = copy(self.candidates)
-        if reverse:
-            candidates.reverse()
         
-        for candidate in candidates:
-            # TODO hash
-            # TODO use tied candidates
-            return candidate
+        # build hash dictionary
+        hashes = dict()
+        for candidate in tied_candidates:
+            hashes[candidate] = hashlib.md5((str(candidate)).encode()).hexdigest()
+        # select the candidate with the lowest hash value
+        return min(hashes, key=hashes.get)
